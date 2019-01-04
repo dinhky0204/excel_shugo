@@ -50,16 +50,21 @@ namespace WindowsFormsApp1
         private Training readDataFromFile( FileInfo file, String selectedPath)
         {
             Training info = new Training();
-            Excel.Workbook xlWorkbook = xlApp.Workbooks.Open(selectedPath + "/" + @file.Name);
+            Excel.Workbook xlWorkbook = xlApp.Workbooks.Open(selectedPath + "\\" + file.Name);
             Excel._Worksheet xlWorksheet = xlWorkbook.Sheets[1];
             object misValue = System.Reflection.Missing.Value;
-
+            String tmp = "";
             Excel.Range xlRange = xlWorksheet.UsedRange;
             int rowCount = xlRange.Rows.Count;
             int colCount = xlRange.Columns.Count;
             if (xlRange.Cells[7, 3] != null && xlRange.Cells[7, 3].Value2 != null)
             {
-                info.KenshuuDate = DateTime.FromOADate((double)xlRange.Cells[7, 3].Value2);
+                var test = xlRange.Cells[7, 3].Value2.GetType();
+                if (xlRange.Cells[7, 3].Value2.GetType() == typeof(String))
+                    //tmp = xlRange.Cells[7, 3].Value2.Split('～')[0];
+                    info.KenshuuDate = Convert.ToDateTime(xlRange.Cells[7, 3].Value2.Split('～')[0]);
+                else
+                    info.KenshuuDate = DateTime.FromOADate((double)xlRange.Cells[7, 3].Value2);
             }
 
             info.CourseNumber = getTextDataFromRange(xlRange, 8, 3);
@@ -160,8 +165,6 @@ namespace WindowsFormsApp1
 
                 ++i;
             }
-
-
 
             xlWorkBook.SaveAs(@"C:\Users\n3835\Desktop\キー\" + fileName);
             xlWorkBook.Close();
