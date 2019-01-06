@@ -14,8 +14,6 @@ namespace WindowsFormsApp1
 {
     public partial class Form1 : Form
     {
-        static int x = 200;
-        static int y = 200;
         protected Excel.Application xlApp = new Excel.Application();
         private List<Training> objectList = new List<Training>();
         public Form1()
@@ -53,7 +51,6 @@ namespace WindowsFormsApp1
             Excel.Workbook xlWorkbook = xlApp.Workbooks.Open(selectedPath + "\\" + file.Name);
             Excel._Worksheet xlWorksheet = xlWorkbook.Sheets[1];
             object misValue = System.Reflection.Missing.Value;
-            String tmp = "";
             Excel.Range xlRange = xlWorksheet.UsedRange;
             int rowCount = xlRange.Rows.Count;
             int colCount = xlRange.Columns.Count;
@@ -61,7 +58,6 @@ namespace WindowsFormsApp1
             {
                 var test = xlRange.Cells[7, 3].Value2.GetType();
                 if (xlRange.Cells[7, 3].Value2.GetType() == typeof(String))
-                    //tmp = xlRange.Cells[7, 3].Value2.Split('～')[0];
                     info.KenshuuDate = Convert.ToDateTime(xlRange.Cells[7, 3].Value2.Split('～')[0]);
                 else
                     info.KenshuuDate = DateTime.FromOADate((double)xlRange.Cells[7, 3].Value2);
@@ -166,13 +162,14 @@ namespace WindowsFormsApp1
                 ++i;
             }
 
-            xlWorkBook.SaveAs(@"C:\Users\n3835\Desktop\キー\" + fileName);
+            xlWorkBook.SaveAs(@fileName);
             xlWorkBook.Close();
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog();
+            fbd.Description = "研修評価測定表のフォルダーを選択する";
             String fileName = DateTime.Now.ToString("dd_MM_yyyy_HHmmss") + ".xlsx";
             if (fbd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
@@ -181,19 +178,44 @@ namespace WindowsFormsApp1
                 Training info = new Training();
                 foreach (FileInfo file in Files)
                 {
-                    objectList.Add(readDataFromFile(file, fbd.SelectedPath));
+                    try
+                    {
+                        objectList.Add(readDataFromFile(file, fbd.SelectedPath));
+                        label1.Text = file.Name + "を読み込んでいる。。。";
+                    } catch
+                    {
+                        xlApp.Quit();
+                    }
                 }
-                writeExcelFile(fileName, objectList);
-                MessageBox.Show("ファイル集合が完了しました");
-                objectList.Clear();
+
+                FolderBrowserDialog fbd1 = new FolderBrowserDialog();
+                fbd1.Description = "集計フォルダーを選択する";
+                if (fbd1.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    try
+                    {
+                        fileName = fbd1.SelectedPath + "\\" + fileName;
+                        writeExcelFile(fileName, objectList);
+                        MessageBox.Show("ファイル集合が完了しました");
+                        objectList.Clear();
+                    }
+                    catch
+                    {
+                        xlApp.Quit();
+                    }
+                }
                 xlApp.Quit();
             }
-            
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
             
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
